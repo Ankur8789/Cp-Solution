@@ -16,6 +16,10 @@
         "string": "cpp",
         "unordered_map": "cpp",
         "unordered_set": "cpp",
-        "vector": "cpp"
-    }
+        "vector": "cpp",
+        "cmath": "cpp",
+        "complex": "cpp"
+    },
+    "cph.general.onceMaintainerMessage": false,
+    "C_Cpp.errorSquiggles": "disabled"
 }

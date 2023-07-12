@@ -8,6 +8,10 @@ using namespace std;
 using namespace __gnu_pbds;
 tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> T;
 typedef long long ll;
+template <class T>
+using pbset = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+template <class T>
+using pbmultiset = tree<T, null_type, less_equal<T>, rb_tree_tag, tree_order_statistics_node_update>;
 #define fastio()                      \
     ios_base::sync_with_stdio(false); \
     cin.tie(NULL);                    \
@@ -16,12 +20,14 @@ typedef long long ll;
 #define REVERSE(A) reverse(A.begin(), A.end());
 #define srt(A, n) sort(A, A + n);
 #define ln "\n"
+#define dbg cout << "debug\n";
+#define inf 2e18;
 const ll mod = 1e9 + 7;
 const ll modx = 998244353;
-typedef priority_queue<int> pq1;
-typedef priority_queue<int, vector<int>, greater<int>> pq2;
+typedef priority_queue<ll> pqmax;
+typedef priority_queue<ll, vector<ll>, greater<ll>> pqmin;
 // binary search on real number l=mid||r=mid
-// Oredered set functions
+// Ordered set functions
 // it=s.find_by_order(x) (for index)
 // s.order_of_key(x)(no of elements smaller than x)
 //************PRIME CHECK*************
@@ -49,6 +55,33 @@ void sieve()
             for (int j = i * i; j <= 9000001; j += i)
                 soe[j] = false;
         }
+    }
+}
+//*************DSU******************
+ll parent[200001];
+ll siz[200001];
+void make(ll v)
+{
+    parent[v] = v;
+    siz[v] = 1;
+}
+ll find(ll v)
+{
+    if (parent[v] == v)
+        return v;
+    else // path compresssion
+        return parent[v] = find(parent[v]);
+}
+void Union(ll a, ll b)
+{
+    a = find(a);
+    b = find(b);
+    if (a != b)
+    { // union by size
+        if (siz[a] < siz[b])
+            swap(a, b);
+        parent[b] = a;
+        siz[a] += siz[b];
     }
 }
 //***********prime factorization*****
@@ -82,7 +115,8 @@ vector<pair<ll, ll>> pf(ll n)
 }
 //**************bin exp************
 ll mpw(ll base, ll exp, ll M)
-{ // O(LOGEXP) TIME
+{
+    // O(LOGEXP) TIME
     if (exp == 0)
         return 1;
     ll res = mpw(base, exp / 2, M);
@@ -119,6 +153,14 @@ ll ppc(ll n)
         n &= n - 1;
     return c;
 }
+//***********CEIL************
+ll ceill(ll up, ll down)
+{
+    ll res = up / down;
+    if (up % down != 0)
+        res++;
+    return res;
+}
 //**********ncr**************
 ll F[1000001];
 void ix()
@@ -132,25 +174,19 @@ void solve()
 {
     ll n, m;
     cin >> n >> m;
-    vector<vector<ll>> ed;
+    unordered_map<ll, vector<pair<ll, ll>>> adj;
+    vector<vector<ll>> v;
     for (ll i = 0; i < m; i++)
     {
-        ll a, b, c;
-        cin >> a >> b >> c;
-        ed.push_back({a, b, c});
+        ll a, b, wt;
+        cin >> a >> b >> wt;
+        adj[a].push_back({b, wt});
+        v.push_back({a, b, wt});
     }
-    ll dis[n + 1];
-    ll par[n + 1];
-    for (ll i = 0; i <= n + 1; i++)
-    {
-        dis[i] = 1e18;
-        par[i] = -1;
-    }
-    dis[1] = 0;
-    bool ok = false;
+    vector<ll> dis(n + 1, 1e18);
     for (ll i = 0; i < n - 1; i++)
     {
-        for (auto t : ed)
+        for (auto t : v)
         {
             ll u = t[0];
             ll v = t[1];
@@ -161,26 +197,27 @@ void solve()
             }
         }
     }
+    bool cyc = false;
+    ll st = -1, ed = -1;
     for (ll i = 0; i < n - 1; i++)
     {
-        for (auto t : ed)
+        for (auto t : v)
         {
             ll u = t[0];
             ll v = t[1];
             ll wt = t[2];
             if (dis[u] != 1e18 && dis[v] > dis[u] + wt)
             {
-                ok = true;
+                st = u;
+                ed = v;
+                cyc = true;
                 break;
             }
         }
-        if (ok)
-            break;
     }
-    if (ok)
+    if (cyc)
     {
         cout << "YES" << ln;
-        
     }
     else
     {

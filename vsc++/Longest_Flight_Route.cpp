@@ -6,20 +6,28 @@
 #include <ext/pb_ds/tree_policy.hpp>
 using namespace std;
 using namespace __gnu_pbds;
-tree<int, null_type, less<int>, rb_tree_tag,tree_order_statistics_node_update>T;
+tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> T;
 typedef long long ll;
- #define fastio() ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL); 
- #define SORT(A) sort(A.begin(), A.end());  
- 
- #define REVERSE(A) reverse(A.begin(), A.end());
- #define srt(A,n) sort(A,A+n);
- #define ln "\n"
-const ll M = 1e9 + 7;
-const ll M_ = 1e7 + 10;
-typedef priority_queue<int> pq1;
-typedef priority_queue<int,vector<int>,greater<int> > pq2;
+template <class T>
+using pbset = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+template <class T>
+using pbmultiset = tree<T, null_type, less_equal<T>, rb_tree_tag, tree_order_statistics_node_update>;
+#define fastio()                      \
+    ios_base::sync_with_stdio(false); \
+    cin.tie(NULL);                    \
+    cout.tie(NULL);
+#define SORT(A) sort(A.begin(), A.end());
+#define REVERSE(A) reverse(A.begin(), A.end());
+#define srt(A, n) sort(A, A + n);
+#define ln "\n"
+#define dbg cout << "debug\n";
+#define inf 2e18;
+const ll mod = 1e9 + 7;
+const ll modx = 998244353;
+typedef priority_queue<ll> pqmax;
+typedef priority_queue<ll, vector<ll>, greater<ll>> pqmin;
 // binary search on real number l=mid||r=mid
-// Oredered set functions
+// Ordered set functions
 // it=s.find_by_order(x) (for index)
 // s.order_of_key(x)(no of elements smaller than x)
 //************PRIME CHECK*************
@@ -49,10 +57,37 @@ void sieve()
         }
     }
 }
-//***********prime factorization*****
-vector<pair<ll, ll> > pf(ll n)
+//*************DSU******************
+ll parent[200001];
+ll siz[200001];
+void make(ll v)
 {
-    vector<pair<ll, ll> > ans;
+    parent[v] = v;
+    siz[v] = 1;
+}
+ll find(ll v)
+{
+    if (parent[v] == v)
+        return v;
+    else // path compresssion
+        return parent[v] = find(parent[v]);
+}
+void Union(ll a, ll b)
+{
+    a = find(a);
+    b = find(b);
+    if (a != b)
+    { // union by size
+        if (siz[a] < siz[b])
+            swap(a, b);
+        parent[b] = a;
+        siz[a] += siz[b];
+    }
+}
+//***********prime factorization*****
+vector<pair<ll, ll>> pf(ll n)
+{
+    vector<pair<ll, ll>> ans;
     for (ll i = 2; i * i <= n; i++)
     {
         if (n % i == 0)
@@ -79,15 +114,16 @@ vector<pair<ll, ll> > pf(ll n)
     return ans;
 }
 //**************bin exp************
-ll mpw(ll base, ll exp,ll mod)
-{ // O(LOGEXP) TIME
+ll mpw(ll base, ll exp, ll M)
+{
+    // O(LOGEXP) TIME
     if (exp == 0)
         return 1;
-    ll res = mpw(base, exp / 2,mod);
+    ll res = mpw(base, exp / 2, M);
     if (exp % 2 == 1)
-        return (((res * res) % mod) * base) % mod;
+        return (((res * res) % M) * base) % M;
     else
-        return (res * res) % mod;
+        return (res * res) % M;
 }
 
 ll pw(ll a, ll n)
@@ -117,69 +153,91 @@ ll ppc(ll n)
         n &= n - 1;
     return c;
 }
+//***********CEIL************
+ll ceill(ll up, ll down)
+{
+    ll res = up / down;
+    if (up % down != 0)
+        res++;
+    return res;
+}
 //**********ncr**************
 ll F[1000001];
 void ix()
 {
-	F[0]=F[1]=1;
-	for(ll i=2;i<=1000000;i++)
-	F[i]=(F[i-1]*1LL*i)%M;
+    F[0] = F[1] = 1;
+    for (ll i = 2; i <= 1000000; i++)
+        F[i] = (F[i - 1] * 1LL * i) % mod;
 }
-vector<ll> adj[100001];
-vector<ll> ideg(100001);
+
 void solve()
 {
-	ll n,m;
-    cin>>n>>m;
-    
-    while(m--)
+    ll n, m;
+    cin >> n >> m;
+    unordered_map<ll, vector<ll>> adj;
+    for (ll i = 0; i < m; i++)
     {
-        ll a,b;
-        cin>>a>>b;
+        ll a, b;
+        cin >> a >> b;
         adj[a].push_back(b);
-        ideg[b]++;
     }
-    deque<ll> q;
-    for(ll i=1;i<=n;i++)
+    vector<ll> par(n + 1, -1), dis(n + 1, -1e18);
+    dis[1] = 0;
+    set<pair<ll, ll>> st;
+    st.insert({dis[1], 1});
+    while (st.size() > 0)
     {
-        if(ideg[i]==0)
-         q.push_back(i);
-    }
-    vector<ll> ans;
-    while(q.size()>0)
-    {
-        ll x=q.front();
-        q.pop_front();
-        ans.push_back(x);
-        for(auto t: adj[x])
+        auto p = *st.rbegin();
+        auto it = st.end();
+        it--;
+        st.erase(it);
+        ll u = p.second;
+        ll duri = p.first;
+        for (auto v : adj[u])
         {
-            ideg[t]--;
-            if(ideg[t]==0)
-            q.push_back(t);
+            if (dis[v] < duri + 1)
+            {
+                if (st.count({dis[v], v}))
+                    st.erase({dis[v], v});
+                dis[v] = duri + 1;
+                st.insert({dis[v], v});
+                par[v] = u;
+            }
         }
-
     }
-    if(ans.size()==0)
+    if (dis[n] == -1e10)
     {
-        cout<<"IMPOSSIBLE"<<ln;
-        return ;
+        cout << "IMPOSSIBLE";
     }
-    cout<<ans.size()<<ln;
-    for(auto t: ans)cout<<t<<" ";
+    else
+    {
+        cout << dis[n] + 1 << ln;
+        vector<ll> path;
+        ll curr = n;
+        path.push_back(curr);
+        while (1)
+        {
+            ll p = par[curr];
+            if (p == -1)
+                break;
+            path.push_back(p);
+            curr = p;
+        }
+        REVERSE(path);
+        for (auto t : path)
+            cout << t << " ";
+    }
 }
 
 int main()
-{  
-  fastio();
-   ll t=1;
-   //ix();
-  // cin>>t;
-   while(t--)
-   {
-   	 solve();
-   }
-   
-
+{
+    fastio();
+    ll t = 1;
+    // ix();
+    // cin>>t;
+    while (t--)
+    {
+        solve();
+    }
 }
-
 

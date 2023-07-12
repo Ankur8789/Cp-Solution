@@ -1,27 +1,37 @@
+#pragma GCC optimize("Ofast")
+#pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,avx2,fma")
+#pragma GCC optimize("unroll-loops")
 #include <bits/stdc++.h>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
-
 using namespace std;
 using namespace __gnu_pbds;
-
-int N, idx;
-tree<int, null_type, less<int>, rb_tree_tag,
-     tree_order_statistics_node_update>
-    T;
+tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> T;
 typedef long long ll;
- #define SORT(A) sort(A.begin(), A.end());
- #define REVERSE(A) reverse(A.begin(), A.end());
-const ll M = 1e9 + 7;
-const ll M_ = 1e7 + 10;
-typedef priority_queue<int> pq1;
-typedef priority_queue<int,vector<int>,greater<int> > pq2;
+template <class T>
+using pbset = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+template <class T>
+using pbmultiset = tree<T, null_type, less_equal<T>, rb_tree_tag, tree_order_statistics_node_update>;
+#define fastio()                      \
+    ios_base::sync_with_stdio(false); \
+    cin.tie(NULL);                    \
+    cout.tie(NULL);
+#define SORT(A) sort(A.begin(), A.end());
+#define REVERSE(A) reverse(A.begin(), A.end());
+#define srt(A, n) sort(A, A + n);
+#define ln "\n"
+#define dbg cout << "debug\n";
+#define inf 2e18;
+const ll mod = 1e9 + 7;
+const ll modx = 998244353;
+typedef priority_queue<int> pqmax;
+typedef priority_queue<int, vector<int>, greater<int>> pqmin;
 // binary search on real number l=mid||r=mid
 // Oredered set functions
 // it=s.find_by_order(x) (for index)
 // s.order_of_key(x)(no of elements smaller than x)
 //************PRIME CHECK*************
-bool isprime(int n)
+bool ipr(int n)
 {
     if (n == 1)
         return false;
@@ -35,22 +45,49 @@ bool isprime(int n)
 }
 //**************SIEVE****************
 // BOOL HAS LESS TIME COMPLEXITY THAN INT
-vector<bool> soe(90000001, 1);
+vector<bool> soe(9000001, 1);
 void sieve()
 {
-    for (int i = 2; i * i <= 90000001; i++)
+    for (int i = 2; i * i <= 9000001; i++)
     {
         if (soe[i] == true)
         {
-            for (int j = i * i; j <= 90000001; j += i)
+            for (int j = i * i; j <= 9000001; j += i)
                 soe[j] = false;
         }
     }
 }
-//***********prime factorization*****
-vector<pair<ll, ll> > primefact(ll n)
+//*************DSU******************
+ll parent[200001];
+ll siz[200001];
+void make(ll v)
 {
-    vector<pair<ll, ll> > ans;
+    parent[v] = v;
+    siz[v] = 1;
+}
+ll find(ll v)
+{
+    if (parent[v] == v)
+        return v;
+    else // path compresssion
+        return parent[v] = find(parent[v]);
+}
+void Union(ll a, ll b)
+{
+    a = find(a);
+    b = find(b);
+    if (a != b)
+    { // union by size
+        if (siz[a] < siz[b])
+            swap(a, b);
+        parent[b] = a;
+        siz[a] += siz[b];
+    }
+}
+//***********prime factorization*****
+vector<pair<ll, ll>> pf(ll n)
+{
+    vector<pair<ll, ll>> ans;
     for (ll i = 2; i * i <= n; i++)
     {
         if (n % i == 0)
@@ -77,9 +114,20 @@ vector<pair<ll, ll> > primefact(ll n)
     return ans;
 }
 //**************bin exp************
-int power(int a, int n)
+ll mpw(ll base, ll exp, ll M)
+{ // O(LOGEXP) TIME
+    if (exp == 0)
+        return 1;
+    ll res = mpw(base, exp / 2, M);
+    if (exp % 2 == 1)
+        return (((res * res) % M) * base) % M;
+    else
+        return (res * res) % M;
+}
+
+ll pw(ll a, ll n)
 {
-    int res = 1;
+    ll res = 1;
     while (n)
     {
         if (n % 2)
@@ -95,152 +143,62 @@ int power(int a, int n)
     }
     return res;
 }
-//**************TRIE**************
-  struct Node {
-	Node *links[26];
-	bool flag = false;
-	//checks if the reference trie is present or not
-	bool containKey(char ch) {
-		return (links[ch - 'a'] != NULL);
-	}
-	//creating reference trie
-	void put(char ch, Node *node) {
-		links[ch - 'a'] = node;
-	}
-	//to get the next node for traversal
-	Node *get(char ch) {
-		return links[ch - 'a'];
-	}
-	//setting flag to true at the end of the word
-	void setEnd() {
-		flag = true;
-	}
-	//checking if the word is completed or not
-	bool isEnd() {
-		return flag;
-	}
-};
-class Trie {
-private:
-	Node* root;
-public:
-	Trie() {
-		//creating new obejct
-		root = new Node();
-	}
-
-	void insert(string word) {
-		//initializing dummy node pointing to root initially
-		Node *node = root;
-		for (int i = 0; i < word.size(); i++) {
-			if (!node->containKey(word[i])) {
-				node->put(word[i], new Node());
-			}
-			//moves to reference trie
-			node = node->get(word[i]);
-		}
-		node->setEnd();
-	}
-
-	bool search(string word) {
-		Node *node = root;
-		for (int i = 0; i < word.size(); i++) {
-			if (!node->containKey(word[i])) {
-				return false;
-			}
-			node = node->get(word[i]);
-		}
-		return node->isEnd();
-	}
-
-	bool startsWith(string prefix) {
-		Node* node = root;
-		for (int i = 0; i < prefix.size(); i++) {
-			if (!node->containKey(prefix[i])) {
-				return false;
-			}
-			node = node->get(prefix[i]);
-		}
-		return true;
-	}
-};
+ll ncr(ll n, ll r)
+{
+    ll up = F[n] % mod;
+    ll d1 = F[n - r] % mod;
+    ll d2 = F[r] % mod;
+    d1 = mpw(d1, mod - 2, mod) % mod;
+    d2 = mpw(d2, mod - 2, mod) % mod;
+    up = (up * d1) % mod;
+    up = (up * d2) % mod;
+    return up;
+}
 //***********pop_count*******
-ll popcount(ll n)
+ll ppc(ll n)
 {
     ll c = 0;
     for (; n; ++c)
         n &= n - 1;
     return c;
 }
-///*********ncr*********
-//  const int N = 1e6 + 100;
-//  long long fact[N];
-//  initialise the factorial
-//  void initfact()
-//  {
-//  fact[0] = 1;
-//    for (int i = 1; i < N; i++)
-//    {
-//        fact[i] = (fact[i - 1] * i);
-//        fact[i] %= MOD;
-//    }
- 
-//  }
-// // modular exponentiation
-// long long modpow(long long x, long long n, long long p)
-// {
+//***********CEIL************
+ll ceill(ll up, ll down)
+{
+    ll res = up / down;
+    if (up % down != 0)
+        res++;
+    return res;
+}
+//**********ncr**************
+ll F[1000001];
+void ix()
+{
+    F[0] = F[1] = 1;
+    for (ll i = 2; i <= 1000000; i++)
+        F[i] = (F[i - 1] * 1LL * i) % mod;
+}
 
-//     if (n == 0)
-//         return 1 % p;
-
-//     ll ans = 1, base = x;
-//     while (n > 0)
-//     {
-//         if (n % 2 == 1)
-//         {
-//             ans = (ans * base) % p;
-//             n--;
-//         }
-//         else
-//         {
-//             base = (base * base) % p;
-//             n /= 2;
-//         }
-//     }
-//     if (ans < 0)
-//         ans = (ans + p) % p;
-//     return ans;
-// }
-
-// // formula for c
-//  ll C(ll n, ll i)
-// {
-//  ll res = fact[n];
-//  ll div = fact[n - i] * fact[i];
-//  div %= M;
-//  div = modpow(div, MOD - 2, MOD);
-//  return (res * div) % MOD;
-//  }
-
+void solve()
+{
+    ll n;
+    cin >> n;
+    for (ll i = 0; i < n; i++)
+    {
+        ll x;
+        cin >> x;
+        cout << x << " ";
+    }
+}
 
 int main()
 {
-   ll n;
-   cin>>n;
-   pq2 p;
-   for(ll i=0;i<n;i++)
-   {
-     ll x;
-     cin>>x;
-     p.push(x);
-   }
-   while(p.size()>0)
-   {
-      cout<<p.top()<<" ";
-      p.pop();
-   }
-   
-
+    fastio();
+    ll t = 1;
+    // ix();
+    // cin>>t;
+    while (t--)
+    {
+        solve();
+    }
 }
-
-

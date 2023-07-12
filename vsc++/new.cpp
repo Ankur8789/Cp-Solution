@@ -65,17 +65,16 @@ bool compare(p64 a, p64 b)
 {
     return a.second < b.second;
 }
-void sw(int & x,int & y)
+void sw(int &x, int &y)
 {
-    x+=2;
-    y+=2;
+    x += 2;
+    y += 2;
 }
-void inforkc()
+int f(int x, int y, int z, int last) void inforkc()
 {
-   
-   int a=10,b=20;
-   sw(a++,b++);
-   cout<<a<<" "<<b;
+    int x, y, z;
+    cin >> x >> y >> z;
+    cout << f(x, y, z, 0);
 }
 
 signed main()

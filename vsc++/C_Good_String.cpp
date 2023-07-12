@@ -174,15 +174,25 @@ void solve()
     string s;
     cin >> s;
     string temp = "";
-    temp += s[s.length() - 1];
-    temp += s;
     temp += s[0];
-    ll n = temp.length();
-    string s1 = temp.substr(0, n);
-    REVERSE(s1);
-    string s2 = temp.substr(1);
-    
+    temp += s;
+    ll n = s.length();
+    temp += s[n - 1];
+    string s1 = s.substr(0, n);
+    string s2 = s.substr(2, n);
+    if (s1 == s2)
+    {
+        cout << 0 << ln;
+        return;
+    }
+    if(n&1)
+    {
+       map<char,ll> 
+    }
+    else
+    {
 
+    }
 }
 
 int main()
@@ -190,7 +200,7 @@ int main()
     fastio();
     ll t = 1;
     // ix();
-    cin >> t;
+    // cin>>t;
     while (t--)
     {
         solve();
